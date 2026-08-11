@@ -9,7 +9,7 @@
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icon-192.png" />
   <link rel="icon" type="image/png" href="icon-192.png" />
-  <title>מתקדמים – היער והמדבר · גרסה 86</title>
+  <title>מתקדמים – היער והמדבר · גרסה 87</title>
   <style>
     :root{--ink:#182238;--muted:#697386;--purple:#6558e8;--purple2:#8276f5;--mint:#35c79a;--yellow:#ffca55;--red:#f16e78;--bg:#f5f6fb;--card:#fff;--line:#e8e9f2;--shadow:0 14px 40px rgba(42,46,94,.10)}
     *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink);font-family:Arial,"Noto Sans Hebrew",sans-serif} button,input,select{font:inherit} button{cursor:pointer}
@@ -121,6 +121,23 @@ body.world-forest #home .hub-hero:before,body.world-desert #home .hub-hero:befor
 @media(max-width:780px){body.world-forest,body.world-desert{background-attachment:scroll}.world-journey-banner{min-height:150px}.mission-head h2{font-size:24px}.mission-score{width:60px;height:60px}}
 
 </style>
+<style id="v87-mobile-map-login">
+#cloudEmailNext{width:100%;margin-top:9px}.cloud-auth #cloudPassword.hidden,.cloud-auth .cloud-row.hidden{display:none!important}
+@media(max-width:780px){
+  .forest-journey-card{min-height:0!important;aspect-ratio:850/1844;background-image:linear-gradient(180deg,rgba(3,34,18,.18),transparent 28%,rgba(2,29,15,.08)),url('assets/v87/forest-map-mobile.png')!important;background-size:100% 100%!important;background-position:center!important}
+  .forest-journey-title{width:86%!important;padding:10px 12px!important}.forest-journey-title h2{font-size:20px!important}.forest-journey-content{padding:12px!important}.journey-level{top:118px!important;right:10px!important}
+  .forest-station.s1{left:48%!important;top:85.4%!important}.forest-station.s2{left:68.5%!important;top:69%!important}.forest-station.s3{left:47.5%!important;top:54.4%!important}.forest-station.s4{left:36.5%!important;top:27.5%!important}.forest-station.s5{left:6.5%!important;top:9.6%!important}
+  .journey-ori.stage-0{left:53%!important;top:81.5%!important}.journey-ori.stage-1{left:73%!important;top:65%!important}.journey-ori.stage-2{left:52%!important;top:50.5%!important}.journey-ori.stage-3{left:42%!important;top:23.5%!important}.journey-ori.stage-4{left:11%!important;top:5.7%!important}
+  .journey-dashed-path{display:none!important}.forest-station:after{font-size:9px!important;width:61px!important}.forest-route:after{display:none!important}
+}
+</style>
+<script id="v87-polish">
+(function(){
+  function polish(){const mark=document.querySelector('.version-mark');if(mark)mark.textContent='גרסה 87 · ניהול דרגות ומשחקים';}
+  const base=window.renderAll;window.renderAll=function(){const out=base?.apply(this,arguments);setTimeout(polish);return out};
+  addEventListener('DOMContentLoaded',polish);
+})();
+</script>
 
 <style id="v50-entry-fitness-fixes">
 /* גרסה 50 — עיצוב מסלולים ושמירת שאלון הכושר */
@@ -414,8 +431,9 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;ba
     <button id="cloudGoogle" class="cloud-google">המשך עם Google</button>
     <div class="cloud-sep">או</div>
     <input id="cloudEmail" type="email" autocomplete="email" placeholder="כתובת אימייל">
-    <input id="cloudPassword" type="password" autocomplete="current-password" placeholder="סיסמה (לפחות 6 תווים)">
-    <div class="cloud-row"><button id="cloudLogin" class="cloud-primary">כניסה</button><button id="cloudRegister" class="cloud-secondary">הרשמה</button></div>
+    <button id="cloudEmailNext" class="cloud-primary" type="button">המשך לסיסמה</button>
+    <input id="cloudPassword" class="email-password-step hidden" type="password" autocomplete="current-password" placeholder="סיסמה (לפחות 6 תווים)">
+    <div class="cloud-row email-password-step hidden"><button id="cloudLogin" class="cloud-primary">כניסה</button><button id="cloudRegister" class="cloud-secondary">הרשמה</button></div>
     <div id="cloudAuthStatus" class="cloud-status"></div>
     <small>במחשב פרטי הנתונים נשמרים גם מקומית כגיבוי. בשבת האפליקציה ממשיכה לפעול לפי ההגדרות הקיימות.</small>
   </div>
