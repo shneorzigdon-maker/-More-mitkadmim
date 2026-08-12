@@ -23,17 +23,135 @@ window.addEventListener('resize',()=>{clearTimeout(window.__chartTimer);window._
 
 function allFeedback(){return users.flatMap(u=>arr(u.feedback).map(f=>({user:u,...f}))).sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||'')))}function renderFeedback(){const box=document.getElementById('feedbackInbox');if(!box)return;const items=allFeedback();document.getElementById('feedbackCount').textContent=`${items.length} פניות`;box.innerHTML=items.length?items.slice(0,100).map(x=>`<div class="feedback-card ${x.status==='new'?'new':''}"><div class="feedback-meta"><b>${esc(x.profileName||name(x.user))}</b><span>${esc(x.user.email||'')}</span><span>${esc(x.type||'feedback')}</span><span>${esc(x.screen||'')}</span><span>${esc(x.createdAt?new Date(x.createdAt).toLocaleString('he-IL'):'')}</span></div><p>${esc(x.body||'')}</p><div class="feedback-actions"><button class="btn small secondary feedback-reply" data-uid="${esc(x.user.uid)}">השב דרך אורי</button><button class="btn small feedback-done" data-uid="${esc(x.user.uid)}" data-id="${esc(x.id)}">סמן כטופל</button></div></div>`).join(''):'<div class="empty">אין עדיין פניות</div>';document.querySelectorAll('.feedback-reply').forEach(b=>b.onclick=()=>{const u=users.find(x=>x.uid===b.dataset.uid);if(u){openEdit(u);setTimeout(()=>document.getElementById('personalBody')?.focus(),150)}});document.querySelectorAll('.feedback-done').forEach(b=>b.onclick=()=>markFeedbackDone(b.dataset.uid,b.dataset.id))}async function markFeedbackDone(uid,id){const u=users.find(x=>x.uid===uid);if(!u)return;const next=arr(u.feedback).map(x=>x.id===id?{...x,status:'done'}:x);await updateDoc(doc(db,'users',uid),{feedback:next,updatedAt:serverTimestamp()});toast('הפנייה סומנה כטופלה')}
 
-// גרסה 82: כל מסמך הוא חשבון מייל, ובתוכו עד שלושה פרופילים נפרדים.
-function accountProfileStates(u){const entries=Object.entries(u.profiles||{}).filter(([,s])=>s&&s.profile);return entries.length?entries.map(([profileId,s])=>({uid:u.uid,email:u.email||'',displayName:u.displayName||'',lastSeenAt:u.lastSeenAt,lastActiveAt:u.lastActiveAt,currentScreen:u.currentScreen,currentScreenSince:u.currentScreenSince,online:u.online,profileId,state:s,fitness:s.fitness||{}})):[{...u,profileId:u.activeProfileId||'active'}]}
+
+// גרסה 88: חשבון מייל יכול להכיל עד שלושה פרופילים נפרדים.
+function accountProfileStates(u){
+  const entries=Object.entries(u.profiles||{}).filter(([,s])=>s&&s.profile);
+  return entries.length
+    ? entries.map(([profileId,s])=>({uid:u.uid,email:u.email||'',displayName:u.displayName||'',lastSeenAt:u.lastSeenAt,lastActiveAt:u.lastActiveAt,currentScreen:u.currentScreen,currentScreenSince:u.currentScreenSince,online:u.online,profileId,state:s,fitness:s.fitness||{}}))
+    : [{...u,profileId:u.activeProfileId||'active'}];
+}
 function everyProfile(){return users.flatMap(accountProfileStates)}
 function avatarAdmin(p){const a=profile(p).avatar||{};return a.type==='image'&&a.value?`<img src="${esc(a.value)}" alt="תמונת הפרופיל">`:esc(a.value||'🧑')}
-function profileGrade(p){const total=Number(state(p).journeyStepsLifetime)||0,levels=[0,8,18,32,50,72,98,128,162,200,242,288];let grade=1;for(let i=1;i<levels.length;i++)if(total>=levels[i])grade=i+1;return grade}
-const gradeStartsV87=[0,8,18,32,50,72,98,128,162,200,242,288];
-async function changeGradeV87(uid,profileId,delta){const account=users.find(u=>u.uid===uid);if(!account)return;const hasProfiles=account.profiles&&profileId!=='active'&&account.profiles[profileId];const source=hasProfiles?account.profiles[profileId]:state(account);const current=profileGrade({state:source});const target=Math.max(1,Math.min(12,current+delta));if(target===current){toast(target===12?'המשתמש כבר בדרגה הגבוהה ביותר':'המשתמש כבר בדרגה 1');return}if(!confirm(`לשנות את הדרגה של ${name({state:source})} מדרגה ${current} לדרגה ${target}?`))return;const next=structuredClone(source);next.journeyStepsLifetime=gradeStartsV87[target-1];next.game={...(next.game||{}),world:target>=5?2:1};next.desertUnlocked=target>=5;if(target<5){next.desertTransitionCompletedV84=false;next.desertGateUnlocked=false}const payload={updatedAt:serverTimestamp()};if(hasProfiles){const profiles=structuredClone(account.profiles);profiles[profileId]=next;payload.profiles=profiles;if(account.activeProfileId===profileId){payload.state=next;payload.fitness=next.fitness||null}}else{payload.state=next;payload.fitness=next.fitness||fit(account)}await updateDoc(doc(db,'users',uid),payload);toast(`הדרגה שונתה ל־${target}`)}
-filtered=function(){const term=$('#search').value.trim().toLowerCase(),ff=$('#fitnessFilter').value;return users.filter(u=>{const ps=accountProfileStates(u),text=`${u.email||''} ${u.displayName||''} ${ps.map(name).join(' ')}`.toLowerCase(),configured=ps.some(p=>!!fit(p).configured),attention=ps.some(needsAttention);return text.includes(term)&&(!ff||(ff==='configured'?configured:ff==='missing'?!configured:attention))})}
-renderUsers=function(){const accounts=filtered(),profileCount=accounts.reduce((n,u)=>n+accountProfileStates(u).length,0);$('#shownCount').textContent=`${accounts.length} חשבונות · ${profileCount} משתמשים`;$('#usersTable').innerHTML=accounts.length?accounts.map(u=>{const ps=accountProfileStates(u);return`<section class="account-card-v82"><div class="account-head-v82"><div><small>חשבון מייל</small><h3>${esc(u.email||'ללא אימייל')}</h3><small>${isOnline(u)?'<span class="online-dot"></span> מחובר עכשיו':`כניסה אחרונה: ${fmt(u.lastActiveAt||u.lastSeenAt)}`}</small></div><div class="actions"><button class="btn small secondary edit" data-id="${esc(u.uid)}">ניהול החשבון</button><button class="btn small danger del" data-id="${esc(u.uid)}">מחיקה</button></div></div><div class="profile-grid-v82">${ps.map(p=>`<article class="profile-admin-v82"><span class="admin-avatar-v82">${avatarAdmin(p)}</span><div><b>${esc(name(p))}</b><small>גיל: ${esc(profile(p).age||'—')} · דרגה ${profileGrade(p)}</small><small>${arr(profile(p).domains).includes('english')?'📖 אנגלית ':''}${arr(profile(p).domains).includes('fitness')?'💪 כושר':''}</small></div><div class="profile-stats-v82"><span>⭐ ${points(p)} נק׳</span><span>📚 ${known(p).length} מילים</span><span>🏃 ${logs(p).length} אימונים</span><span>${Number(state(p).game?.world||1)>=2?'🏜️ במדבר':'🌲 ביער'}</span></div></article>`).join('')}</div></section>`}).join(''):'<div class="empty">לא נמצאו חשבונות או משתמשים</div>';document.querySelectorAll('.edit').forEach(b=>b.onclick=()=>openEdit(users.find(u=>u.uid===b.dataset.id)));document.querySelectorAll('.del').forEach(b=>b.onclick=()=>removeUser(users.find(u=>u.uid===b.dataset.id)))}
-renderRanking=function(){const top=everyProfile().sort((a,b)=>points(b)-points(a)).slice(0,10);$('#ranking').innerHTML=top.length?top.map((u,i)=>`<div class="rank"><b>${i+1}</b><span><strong>${esc(name(u))}</strong><br><small>${esc(u.email||'')}</small></span><b>${points(u)} נק׳</b></div>`).join(''):'<div class="empty">אין עדיין נתוני דירוג</div>'}
-render=function(){const now=new Date(),week=new Date(now);week.setDate(now.getDate()-7);const ps=everyProfile();$('#usersCount').textContent=users.length;$('#profilesCount').textContent=ps.length;$('#activeToday').textContent=users.filter(u=>sameDay(dateOf(u.lastSeenAt),now)).length;$('#onlineNow').textContent=users.filter(isOnline).length;$('#workoutsToday').textContent=ps.reduce((n,u)=>n+todayWorkoutCount(u),0);$('#wordsToday').textContent=ps.reduce((n,u)=>n+todayWordsCount(u),0);$('#newWeek').textContent=users.filter(u=>dateOf(u.createdAt||u.registeredAt||u.updatedAt)>=week).length;$('#attentionCount').textContent=ps.filter(needsAttention).length;$('#desertCount').textContent=ps.filter(p=>Number(state(p).game?.world||1)>=2).length;$('#inactiveWeek').textContent=users.filter(u=>{const d=dateOf(u.lastActiveAt||u.lastSeenAt);return!d||d<week}).length;$('#noStudyWeek').textContent=ps.filter(p=>known(p).length===0&&logs(p).length===0).length;$('#missingFitnessV82').textContent=ps.filter(p=>arr(profile(p).domains).includes('fitness')&&!fit(p).configured).length;$('#newFeedbackV82').textContent=allFeedback().filter(f=>f.status==='new').length;renderChart();renderRanking();renderFeedback();renderUsers()}
 
-function installGradeControlsV87(){const accounts=filtered();document.querySelectorAll('#usersTable .account-card-v82').forEach((section,accountIndex)=>{const account=accounts[accountIndex];if(!account)return;const profiles=accountProfileStates(account);section.querySelectorAll('.profile-admin-v82').forEach((card,profileIndex)=>{if(card.querySelector('.grade-controls-v87'))return;const p=profiles[profileIndex],grade=profileGrade(p);card.insertAdjacentHTML('beforeend',`<div class="grade-controls-v87"><b>דרגה ${grade}</b><button class="btn small danger grade-down-v87" type="button" title="הורדת דרגה">−</button><button class="btn small success grade-up-v87" type="button" title="העלאת דרגה">+</button></div>`);card.querySelector('.grade-down-v87').onclick=()=>changeGradeV87(account.uid,p.profileId||'active',-1);card.querySelector('.grade-up-v87').onclick=()=>changeGradeV87(account.uid,p.profileId||'active',1)})})}
-const usersTableV87=document.getElementById('usersTable');if(usersTableV87)new MutationObserver(()=>queueMicrotask(installGradeControlsV87)).observe(usersTableV87,{childList:true,subtree:true});
+const gradeStartsV88=[0,8,18,32,50,72,98,128,162,200,242,288];
+function profileGrade(p){
+  const total=Number(state(p).journeyStepsLifetime)||0;
+  let grade=1;
+  for(let i=1;i<gradeStartsV88.length;i++)if(total>=gradeStartsV88[i])grade=i+1;
+  return grade;
+}
+function gradeOptionsV88(current){return gradeStartsV88.map((_,i)=>`<option value="${i+1}" ${i+1===current?'selected':''}>דרגה ${i+1}</option>`).join('')}
+
+async function setGradeV88(uid,profileId,target){
+  const account=users.find(u=>u.uid===uid);if(!account)return;
+  const hasProfiles=account.profiles&&profileId!=='active'&&account.profiles[profileId];
+  const source=hasProfiles?account.profiles[profileId]:state(account);
+  const current=profileGrade({state:source});
+  target=Math.max(1,Math.min(12,Number(target)||current));
+  if(target===current){toast(`המשתמש כבר בדרגה ${current}`);return}
+  const who=name({state:source});
+  if(!confirm(`לשנות את הדרגה של ${who} מדרגה ${current} לדרגה ${target}?`))return;
+
+  const next=structuredClone(source);
+  next.journeyStepsLifetime=gradeStartsV88[target-1];
+  // שמירה גם בשדות הוותיקים כדי שכל מסכי האפליקציה יציגו אותה דרגה באופן עקבי.
+  next.appLevel=target;
+  next.levelTasks=0;
+  next.game={...(next.game||{})};
+  next.manualGradeChangedAt=new Date().toISOString();
+  next.manualGradeChangedBy=auth.currentUser?.email||auth.currentUser?.uid||'admin';
+
+  if(target<5){
+    next.game.world=1;
+    next.desertUnlocked=false;
+    next.desertGateUnlocked=false;
+    next.desertTransitionCompletedV84=false;
+    next.gateVideoSeenV84=false;
+  }else{
+    next.desertUnlocked=true;
+    next.desertGateUnlocked=true;
+    // אם המשתמש עדיין לא ראה את מעבר היער→מדבר, נשאיר אותו ביער כדי שהמעבר יוצג כרגיל.
+    next.game.world=next.desertTransitionCompletedV84?2:1;
+  }
+  // העלאה ידנית תאפשר לאפליקציה להציג חגיגת עלייה אחת בכניסה הבאה; בהורדה לא תוצג חגיגה שגויה.
+  next.lastCelebratedJourneyLevel=target>current?Math.max(1,target-1):target;
+
+  const payload={updatedAt:serverTimestamp()};
+  if(hasProfiles){
+    const profiles=structuredClone(account.profiles);
+    profiles[profileId]=next;
+    payload.profiles=profiles;
+    if(account.activeProfileId===profileId){payload.state=next;payload.fitness=next.fitness||null}
+  }else{
+    payload.state=next;
+    payload.fitness=next.fitness||fit(account);
+  }
+  try{
+    await updateDoc(doc(db,'users',uid),payload);
+    toast(`הדרגה של ${who} שונתה ל־${target}`);
+  }catch(e){
+    console.error(e);
+    alert('לא ניתן לשנות את הדרגה. ודאו שלחשבון המנהל יש הרשאת כתיבה ב-Firestore.');
+  }
+}
+async function changeGradeV88(uid,profileId,delta){
+  const account=users.find(u=>u.uid===uid);if(!account)return;
+  const p=accountProfileStates(account).find(x=>(x.profileId||'active')===profileId);if(!p)return;
+  return setGradeV88(uid,profileId,profileGrade(p)+delta);
+}
+
+filtered=function(){
+  const term=$('#search').value.trim().toLowerCase(),ff=$('#fitnessFilter').value;
+  return users.filter(u=>{
+    const ps=accountProfileStates(u),text=`${u.email||''} ${u.displayName||''} ${ps.map(name).join(' ')}`.toLowerCase(),configured=ps.some(p=>!!fit(p).configured),attention=ps.some(needsAttention);
+    return text.includes(term)&&(!ff||(ff==='configured'?configured:ff==='missing'?!configured:attention));
+  })
+}
+
+renderUsers=function(){
+  const accounts=filtered(),profileCount=accounts.reduce((n,u)=>n+accountProfileStates(u).length,0);
+  $('#shownCount').textContent=`${accounts.length} חשבונות · ${profileCount} משתמשים`;
+  $('#usersTable').innerHTML=accounts.length?accounts.map(u=>{
+    const ps=accountProfileStates(u);
+    return`<section class="account-card-v82">
+      <div class="account-head-v82"><div><small>חשבון מייל</small><h3>${esc(u.email||'ללא אימייל')}</h3><small>${isOnline(u)?'<span class="online-dot"></span> מחובר עכשיו':`כניסה אחרונה: ${fmt(u.lastActiveAt||u.lastSeenAt)}`}</small></div><div class="actions"><button class="btn small secondary edit" data-id="${esc(u.uid)}">ניהול החשבון</button><button class="btn small danger del" data-id="${esc(u.uid)}">מחיקה</button></div></div>
+      <div class="profile-grid-v82">${ps.map(p=>{const grade=profileGrade(p),pid=esc(p.profileId||'active');return`<article class="profile-admin-v82">
+        <span class="admin-avatar-v82">${avatarAdmin(p)}</span>
+        <div><b>${esc(name(p))}</b><small>גיל: ${esc(profile(p).age||'—')} · דרגה ${grade}</small><small>${arr(profile(p).domains).includes('english')?'📖 אנגלית ':''}${arr(profile(p).domains).includes('fitness')?'💪 כושר':''}</small></div>
+        <div class="profile-stats-v82"><span>⭐ ${points(p)} נק׳</span><span>📚 ${known(p).length} מילים</span><span>🏃 ${logs(p).length} אימונים</span><span>${Number(state(p).game?.world||1)>=2?'🏜️ במדבר':'🌲 ביער'}</span></div>
+        <div class="grade-controls-v88">
+          <div class="grade-label-v88"><small>ניהול דרגה</small><b>דרגה ${grade}</b></div>
+          <button class="btn small danger grade-down-v88" type="button" data-uid="${esc(u.uid)}" data-profile="${pid}" title="הורדת דרגה" ${grade<=1?'disabled':''}>− הורד</button>
+          <select class="grade-select-v88" data-uid="${esc(u.uid)}" data-profile="${pid}" aria-label="בחירת דרגה">${gradeOptionsV88(grade)}</select>
+          <button class="btn small success grade-up-v88" type="button" data-uid="${esc(u.uid)}" data-profile="${pid}" title="העלאת דרגה" ${grade>=12?'disabled':''}>העלה +</button>
+        </div>
+      </article>`}).join('')}</div>
+    </section>`
+  }).join(''):'<div class="empty">לא נמצאו חשבונות או משתמשים</div>';
+  document.querySelectorAll('.edit').forEach(b=>b.onclick=()=>openEdit(users.find(u=>u.uid===b.dataset.id)));
+  document.querySelectorAll('.del').forEach(b=>b.onclick=()=>removeUser(users.find(u=>u.uid===b.dataset.id)));
+  document.querySelectorAll('.grade-down-v88').forEach(b=>b.onclick=()=>changeGradeV88(b.dataset.uid,b.dataset.profile,-1));
+  document.querySelectorAll('.grade-up-v88').forEach(b=>b.onclick=()=>changeGradeV88(b.dataset.uid,b.dataset.profile,1));
+  document.querySelectorAll('.grade-select-v88').forEach(s=>s.onchange=()=>setGradeV88(s.dataset.uid,s.dataset.profile,Number(s.value)));
+}
+
+renderRanking=function(){const top=everyProfile().sort((a,b)=>points(b)-points(a)).slice(0,10);$('#ranking').innerHTML=top.length?top.map((u,i)=>`<div class="rank"><b>${i+1}</b><span><strong>${esc(name(u))}</strong><br><small>${esc(u.email||'')}</small></span><b>${points(u)} נק׳</b></div>`).join(''):'<div class="empty">אין עדיין נתוני דירוג</div>'}
+
+render=function(){
+  const now=new Date(),week=new Date(now);week.setDate(now.getDate()-7);const ps=everyProfile();
+  $('#usersCount').textContent=users.length;
+  $('#profilesCount').textContent=ps.length;
+  $('#activeToday').textContent=users.filter(u=>sameDay(dateOf(u.lastSeenAt),now)).length;
+  $('#onlineNow').textContent=users.filter(isOnline).length;
+  $('#workoutsToday').textContent=ps.reduce((n,u)=>n+todayWorkoutCount(u),0);
+  $('#wordsToday').textContent=ps.reduce((n,u)=>n+todayWordsCount(u),0);
+  $('#newWeek').textContent=users.filter(u=>dateOf(u.createdAt||u.registeredAt||u.updatedAt)>=week).length;
+  $('#attentionCount').textContent=ps.filter(needsAttention).length;
+  $('#desertCount').textContent=ps.filter(p=>Number(state(p).game?.world||1)>=2||profileGrade(p)>=5).length;
+  $('#inactiveWeek').textContent=users.filter(u=>{const d=dateOf(u.lastActiveAt||u.lastSeenAt);return!d||d<week}).length;
+  $('#noStudyWeek').textContent=ps.filter(p=>known(p).length===0&&logs(p).length===0).length;
+  $('#missingFitnessV82').textContent=ps.filter(p=>arr(profile(p).domains).includes('fitness')&&!fit(p).configured).length;
+  $('#newFeedbackV82').textContent=allFeedback().filter(f=>f.status==='new').length;
+  renderChart();renderRanking();renderFeedback();renderUsers();
+}
