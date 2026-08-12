@@ -2,7 +2,7 @@ import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.5/firebase
 import {
   getAuth, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword,
   createUserWithEmailAndPassword, onAuthStateChanged, signOut,
-  setPersistence, browserSessionPersistence
+  setPersistence, browserLocalPersistence
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 import {
   getFirestore, doc, getDoc, setDoc, serverTimestamp
@@ -60,7 +60,7 @@ async function saveCloud(force = false) {
     fitnessSavedAt: Number(state.fitness?.savedAt) || Date.now(),
     updatedAt: serverTimestamp(),
     lastSeenAt: serverTimestamp(),
-    appVersion: '82-desert-grade12-admin'
+    appVersion: '89-google-remember-admin-password'
   }, {merge: true});
 
   lastSavedJson = serialized;
@@ -136,30 +136,14 @@ async function boot() {
   const app = initializeApp(cfg);
   auth = getAuth(app);
   db = getFirestore(app);
-  await setPersistence(auth, browserSessionPersistence);
 
-  const nextButton = document.getElementById('cloudEmailNext');
-  const passwordSteps = [...document.querySelectorAll('.email-password-step')];
-  const revealPassword = () => {
-    const email = emailInput.value.trim();
-    if (!email || !emailInput.checkValidity()) {
-      setStatus('הזינו כתובת אימייל תקינה');
-      emailInput.focus();
-      return;
-    }
-    passwordSteps.forEach(el => el.classList.remove('hidden'));
-    nextButton?.classList.add('hidden');
-    passwordInput.value = '';
-    passwordInput.focus();
-    setStatus('כעת הזינו את הסיסמה', false);
-  };
-  if (nextButton) nextButton.onclick = revealPassword;
-  emailInput.addEventListener('keydown', event => {
-    if (event.key === 'Enter' && passwordInput.classList.contains('hidden')) {
-      event.preventDefault();
-      revealPassword();
-    }
-  });
+  // v89: שומרים את חיבור המשתמש במכשיר/דפדפן הזה.
+  // בפעם הבאה Firebase משחזר את חשבון Google אוטומטית, עד שהמשתמש מתנתק או מנקה את נתוני האתר.
+  try {
+    await setPersistence(auth, browserLocalPersistence);
+  } catch (error) {
+    console.warn('Could not enable local auth persistence', error);
+  }
 
   document.getElementById('cloudGoogle').onclick = async () => {
     try {
