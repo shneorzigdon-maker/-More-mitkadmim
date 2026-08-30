@@ -324,6 +324,7 @@ body.world-forest #home .hub-hero:before,body.world-desert #home .hub-hero:befor
 
 <style id="cloud-auth-style">
 .cloud-auth{position:fixed;inset:0;z-index:99999;background:linear-gradient(135deg,#f3f1ff,#e9faf4);display:grid;place-items:center;padding:20px;font-family:Arial,sans-serif}.cloud-auth.hidden{display:none}.cloud-auth-card{width:min(460px,100%);background:#fff;border:1px solid #e4e6ef;border-radius:28px;padding:28px;box-shadow:0 28px 75px #28304a28;text-align:right}.cloud-auth-logo{display:flex;align-items:center;gap:12px;margin-bottom:18px}.cloud-auth-logo span{font-size:42px}.cloud-auth h1{margin:0;font-size:28px}.cloud-auth p{color:#687187;line-height:1.55}.cloud-auth input{width:100%;padding:13px 14px;border:1px solid #dfe3ec;border-radius:13px;margin:6px 0;font-size:16px}.cloud-auth button{width:100%;border:0;border-radius:13px;padding:13px;font-weight:900;font-size:15px;margin-top:9px;cursor:pointer}.cloud-google{background:#fff;color:#253047;border:1px solid #dfe3ec!important}.cloud-primary{background:#6258df;color:#fff}.cloud-secondary{background:#ece9ff;color:#554ccc}.cloud-row{display:grid;grid-template-columns:1fr 1fr;gap:9px}.cloud-sep{text-align:center;color:#9298a8;margin:14px 0;position:relative}.cloud-sep:before,.cloud-sep:after{content:"";position:absolute;top:50%;width:42%;height:1px;background:#e4e6ec}.cloud-sep:before{right:0}.cloud-sep:after{left:0}.cloud-status{min-height:22px;color:#b23b3b;font-weight:700;font-size:13px;margin-top:10px}.cloud-user-chip{position:fixed;left:14px;bottom:14px;z-index:9000;background:#fff;border:1px solid #e2e5ee;border-radius:999px;padding:8px 12px;box-shadow:0 7px 22px #2530471f;font-size:12px;font-weight:800;display:none}.cloud-user-chip.show{display:flex;align-items:center;gap:7px}.cloud-user-chip button{border:0;background:#f0edff;color:#554ccc;border-radius:999px;padding:6px 9px;font-weight:800;cursor:pointer}@media(max-width:600px){.cloud-auth-card{padding:21px}.cloud-row{grid-template-columns:1fr}}
+.cloud-auth:not(.hidden){pointer-events:auto!important}.cloud-auth:not(.hidden) .cloud-auth-card,.cloud-auth:not(.hidden) button,.cloud-auth:not(.hidden) input{pointer-events:auto!important}
 </style>
 
 <style id="v683Styles">
@@ -1222,9 +1223,23 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;ba
       var auth = document.getElementById('cloudAuth');
       var app = document.querySelector('.app');
       if (app) app.style.visibility = 'visible';
-      if (auth && auth.classList.contains('hidden')) auth.style.pointerEvents = 'none';
+      if (auth) auth.style.pointerEvents = auth.classList.contains('hidden') ? 'none' : 'auto';
     }, 1200);
   });
+</script>
+
+<script id="v92-login-click-fix">
+(function(){
+  function unlockVisibleLogin(){
+    const auth=document.getElementById('cloudAuth');
+    if(auth&&!auth.classList.contains('hidden')) auth.style.pointerEvents='auto';
+    const mark=document.querySelector('.version-mark');
+    if(mark) mark.textContent='גרסה 92 · תיקון לחצני התחברות';
+  }
+  new MutationObserver(unlockVisibleLogin).observe(document.documentElement,{subtree:true,attributes:true,attributeFilter:['class']});
+  window.addEventListener('DOMContentLoaded',unlockVisibleLogin);
+  setTimeout(unlockVisibleLogin,1300);
+})();
 </script>
 
 <style id="v71-deep-forest">

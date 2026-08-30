@@ -116,6 +116,7 @@ async function loadOrCreate(user) {
 
 function showSignedIn(user) {
   authBox?.classList.add('hidden');
+  if (authBox) authBox.style.pointerEvents = 'none';
   chip?.classList.add('show');
   if (chipText) chipText.textContent = user.displayName || user.email || 'מחובר לענן';
 }
@@ -123,12 +124,14 @@ function showSignedIn(user) {
 function showSignedOut() {
   chip?.classList.remove('show');
   authBox?.classList.remove('hidden');
+  if (authBox) authBox.style.pointerEvents = 'auto';
   setStatus('התחברו כדי שההתקדמות תישמר בכל מכשיר', false);
 }
 
 async function boot() {
   if (!cfg?.projectId) {
     authBox?.classList.remove('hidden');
+    if (authBox) authBox.style.pointerEvents = 'auto';
     setStatus('חסרים פרטי Firebase');
     return;
   }
@@ -255,6 +258,7 @@ window.MitkadmimCloud = {
 
 if (location.protocol === 'file:') {
   authBox?.classList.remove('hidden');
+  if (authBox) authBox.style.pointerEvents = 'auto';
   setStatus('כדי להתחבר ולשמור בענן, פתחו את האפליקציה דרך GitHub Pages ולא דרך file:///');
   ['cloudGoogle', 'cloudLogin', 'cloudRegister'].forEach(id => {
     const button = document.getElementById(id);
