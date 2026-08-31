@@ -429,12 +429,18 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;ba
 <div id="cloudAuth" class="cloud-auth hidden" dir="rtl">
   <div class="cloud-auth-card">
     <div class="cloud-auth-logo"><span>🚀</span><div><h1>ברוכים הבאים למתקדמים</h1><small>ההתקדמות נשמרת בענן</small></div></div>
-    <button id="cloudGoogle" class="cloud-google">המשך עם Google</button>
-    <div class="cloud-sep">או</div>
-    <input id="cloudEmail" type="email" autocomplete="email" placeholder="כתובת אימייל">
-    <button id="cloudEmailNext" class="cloud-primary" type="button">המשך לסיסמה</button>
-    <input id="cloudPassword" class="email-password-step hidden" type="password" autocomplete="current-password" placeholder="סיסמה (לפחות 6 תווים)">
-    <div class="cloud-row email-password-step hidden"><button id="cloudLogin" class="cloud-primary">כניסה</button><button id="cloudRegister" class="cloud-secondary">הרשמה</button></div>
+    <button id="cloudGoogle" class="cloud-google">כניסה עם Google</button>
+    <div id="cloudConsent" class="cloud-consent hidden">
+      <h2>האם הינך מסכים להנחיות?</h2>
+      <ul>
+        <li>משתמשים באפליקציה בהתאם לגיל ובאישור הורה או מבוגר אחראי.</li>
+        <li>באימוני הכושר מתחילים בהדרגה ועוצרים אם מופיעים כאב או תחושה לא טובה.</li>
+        <li>האפליקציה מיועדת ללימוד ולעידוד פעילות ואינה מחליפה ייעוץ רפואי.</li>
+        <li>ההתקדמות נשמרת בחשבון Google המחובר.</li>
+      </ul>
+      <button id="cloudConsentAgree" class="cloud-primary" type="button">אני מסכים וממשיך</button>
+      <button id="cloudConsentDisagree" class="cloud-secondary" type="button">אינני מסכים</button>
+    </div>
     <div id="cloudAuthStatus" class="cloud-status"></div>
     <small>במחשב פרטי הנתונים נשמרים גם מקומית כגיבוי. בשבת האפליקציה ממשיכה לפעול לפי ההגדרות הקיימות.</small>
   </div>
@@ -1069,6 +1075,10 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;ba
   .entry-option.english-entry small,.entry-option.fitness-entry small{font-size:15px;font-weight:800;line-height:1.55}
   .entry-option.english-entry b,.entry-option.fitness-entry b{align-self:center}
 </style>
+<style id="v94-google-persistent-consent">
+  .cloud-auth .cloud-sep,.cloud-auth #cloudEmail,.cloud-auth #cloudPassword,.cloud-auth #cloudEmailNext,.cloud-auth .cloud-row{display:none!important}
+  .cloud-consent{padding:5px 0;text-align:right}.cloud-consent h2{margin:8px 0 12px;color:#2d3650}.cloud-consent ul{margin:0;padding-right:22px;color:#4d5870;line-height:1.75}.cloud-consent li{margin:6px 0}.cloud-consent.hidden,#cloudGoogle.hidden{display:none!important}
+</style>
 <script>
 (function(){
   function overallRankData(){
@@ -1674,7 +1684,7 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;ba
 </style>
 <script id="v86-preview-separated">
 (function(){
-  function polish(){document.getElementById('desertPreviewLaunchV81')?.remove();document.getElementById('desertPreviewV81')?.remove();const mark=document.querySelector('.version-mark');if(mark)mark.textContent='גרסה 86 · מעבר מהיער למדבר'}
+  function polish(){document.getElementById('desertPreviewLaunchV81')?.remove();document.getElementById('desertPreviewV81')?.remove();const mark=document.querySelector('.version-mark');if(mark)mark.textContent='גרסה 94 · כניסת Google קבועה'}
   setInterval(polish,500);setTimeout(polish,300);
 })();
 </script>
