@@ -1609,7 +1609,7 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;ba
   function renderOasis(){const home=document.getElementById('home');if(!home||!state.profile||Number(state.game?.world||1)<2)return;let card=document.getElementById('oasisRealV82');if(!card){card=document.createElement('section');card.id='oasisRealV82';card.className='oasis-real-v82';document.getElementById('desertJourneyV82')?.insertAdjacentElement('afterend',card)}const o=oasisData(),names=['אדמת התקווה','הנבט הראשון','שתיל במדבר','דקל צעיר','דקל מתחזק','המים הגיעו','נווה המדבר שלי'];card.innerHTML=`<img src="assets/v81/oasis-${o.stage+1}.webp" alt="${names[o.stage]}"><div><small>🌴 נווה המדבר שלי</small><h2>${names[o.stage]}</h2><p>הדקל במדבר דורש יותר התמדה מהעץ ביער. כל מילה, אימון וטיפול יומי מקרבים מים וחיים אל הנווה.</p><div class="oasis-next-v82">${o.stage===6&&o.pct>=100?'נווה המדבר הגיע לשיא הצמיחה!':`עוד ${o.remaining} פעולות לשלב הבא`}<div class="progress" role="progressbar" aria-valuenow="${o.pct}" aria-valuemin="0" aria-valuemax="100"><i style="width:${o.pct}%"></i></div></div></div>`}
   function upgradePreview(){const map=document.querySelector('#desertPreviewV81 .desert-map-v81');if(!map||map.dataset.v83)return;map.dataset.v83='1';map.querySelectorAll('.desert-station-v81').forEach(x=>x.remove());mapStops.forEach((p,i)=>map.insertAdjacentHTML('beforeend',`<span class="desert-station-v81 ${i===0?'current':''}" style="right:${p.r}%;bottom:${p.b}%">דרגה<br>${i+5}</span>`));const path=map.querySelector('svg path');if(path)path.setAttribute('d','M700 472 C620 458 565 442 530 419 C485 390 462 356 457 329 C452 295 515 263 550 239 C510 215 455 201 404 190 C355 178 310 166 273 156 C235 143 202 128 174 116 C155 98 143 78 135 65');const ori=map.querySelector('.desert-ori-v81');if(ori){ori.style.right=mapStops[0].r+'%';ori.style.bottom=mapStops[0].b+'%';ori.style.transform='scaleX(-1)'}const label=map.querySelector('.desert-map-label-v81');if(label)label.textContent='🧭 המסע במדבר · 8 תחנות · דרגות 5–12'}
   function renderProgressRank(){document.getElementById('unifiedProgressV83')?.remove()}
-  function runnerWorld(){const frame=document.getElementById('secretRunnerFrame');if(!frame)return;const desert=Number(state.game?.world||1)>=2,wanted=`תצוגה-מקדימה-המשחק-הסודי-אורי.html?world=${desert?2:1}&v=96`;if(frame.getAttribute('src')!==wanted)frame.src=wanted}
+  function runnerWorld(){const frame=document.getElementById('secretRunnerFrame');if(!frame)return;const desert=Number(state.game?.world||1)>=2,wanted=`תצוגה-מקדימה-המשחק-הסודי-אורי.html?world=${desert?2:1}&v=84`;if(!frame.getAttribute('src')?.includes(`world=${desert?2:1}`))frame.src=wanted}
   function polish(){if(!state.profile)return;const mark=document.querySelector('.version-mark'),label='גרסה 84 · סרטונים ומסלולים';if(mark&&mark.textContent!==label)mark.textContent=label;installFileSounds();renderCombinedProgress();renderProgressRank();checkStationAdvance();renderDesertMap();renderOasis();upgradePreview();runnerWorld();window.MitkadmimAudio?.startWorld?.(state.game?.world||1)}
   setInterval(polish,650);setTimeout(polish,550);
 })();
@@ -1755,24 +1755,6 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;ba
   function label(){installButton();const mark=document.querySelector('.version-mark');if(mark)mark.textContent='גרסה 95 · שלושה משתמשים והתאמה לנייד'}
   window.MITKADMIM_PROFILE_QA={maxProfiles:MAX_PROFILES,getProfileIds:()=>profileIds().slice(),count:()=>profileIds().length};
   new MutationObserver(label).observe(document.body,{childList:true,subtree:true});setInterval(label,900);setTimeout(label,60);
-})();
-</script>
-<script id="v96-staged-secret-adventure">
-(function(){
-  window.addEventListener('message',event=>{
-    const data=event.data;
-    if(!data||data.type!=='mitkadmim-secret-game-complete')return;
-    state.game=state.game||{};
-    state.game.adventureBest=Math.max(Number(state.game.adventureBest)||0,Number(data.score)||0);
-    state.game.adventureStars=Math.max(Number(state.game.adventureStars)||0,Number(data.rating)||0);
-    const first=!state.game.adventureRewarded;
-    state.game.world1Done=true;
-    if(first){state.game.adventureRewarded=true;addPoints(80);toast('ההרפתקה הושלמה — קיבלת 80 נקודות! ⭐')}
-    else toast('ההרפתקה הושלמה והשיא נשמר! 🏆');
-    persistState();renderAll();
-  });
-  function label(){const mark=document.querySelector('.version-mark');if(mark)mark.textContent='גרסה 96 · ההרפתקה הסודית בשלבים'}
-  setInterval(label,900);setTimeout(label,60);
 })();
 </script>
 </body></html>
