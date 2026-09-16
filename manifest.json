@@ -1,0 +1,27 @@
+{
+  "name": "מתקדמים – גרסת היער",
+  "short_name": "מתקדמים",
+  "description": "מסלולים אישיים ללימוד אנגלית, אימוני כושר ללא ציוד ומעקב התקדמות",
+  "lang": "he",
+  "dir": "rtl",
+  "start_url": "./?v=86",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#eef6e9",
+  "theme_color": "#2e7d43",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
