@@ -1,7 +1,8 @@
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
 import {
-  getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut,
-  setPersistence, browserLocalPersistence
+  getAuth, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword,
+  createUserWithEmailAndPassword, onAuthStateChanged, signOut,
+  setPersistence, browserSessionPersistence
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 import {
   getFirestore, doc, getDoc, setDoc, serverTimestamp
@@ -12,7 +13,8 @@ const authBox = document.getElementById('cloudAuth');
 const status = document.getElementById('cloudAuthStatus');
 const chip = document.getElementById('cloudUserChip');
 const chipText = document.getElementById('cloudUserText');
-const consentBox = document.getElementById('cloudConsent');
+const emailInput = document.getElementById('cloudEmail');
+const passwordInput = document.getElementById('cloudPassword');
 
 let auth;
 let db;
@@ -58,7 +60,7 @@ async function saveCloud(force = false) {
     fitnessSavedAt: Number(state.fitness?.savedAt) || Date.now(),
     updatedAt: serverTimestamp(),
     lastSeenAt: serverTimestamp(),
-    appVersion: '94-google-persistent-consent'
+    appVersion: '95-three-profiles-mobile'
   }, {merge: true});
 
   lastSavedJson = serialized;
@@ -123,36 +125,7 @@ function showSignedOut() {
   chip?.classList.remove('show');
   authBox?.classList.remove('hidden');
   if (authBox) authBox.style.pointerEvents = 'auto';
-  consentBox?.classList.add('hidden');
-  document.getElementById('cloudGoogle')?.classList.remove('hidden');
   setStatus('התחברו כדי שההתקדמות תישמר בכל מכשיר', false);
-}
-
-function consentKey(user) {
-  return `mitkadmimGuidelinesAccepted:v1:${user.uid}`;
-}
-
-function hasAcceptedGuidelines(user) {
-  return localStorage.getItem(consentKey(user)) === 'yes';
-}
-
-function requestGuidelinesConsent(user) {
-  return new Promise(resolve => {
-    authBox?.classList.remove('hidden');
-    if (authBox) authBox.style.pointerEvents = 'auto';
-    document.getElementById('cloudGoogle')?.classList.add('hidden');
-    consentBox?.classList.remove('hidden');
-    setStatus('', false);
-
-    const agree = document.getElementById('cloudConsentAgree');
-    const disagree = document.getElementById('cloudConsentDisagree');
-    agree.onclick = () => {
-      localStorage.setItem(consentKey(user), 'yes');
-      consentBox?.classList.add('hidden');
-      resolve(true);
-    };
-    disagree.onclick = () => resolve(false);
-  });
 }
 
 async function boot() {
@@ -166,12 +139,53 @@ async function boot() {
   const app = initializeApp(cfg);
   auth = getAuth(app);
   db = getFirestore(app);
-  await setPersistence(auth, browserLocalPersistence);
+  await setPersistence(auth, browserSessionPersistence);
+
+  const nextButton = document.getElementById('cloudEmailNext');
+  const passwordSteps = [...document.querySelectorAll('.email-password-step')];
+  const revealPassword = () => {
+    const email = emailInput.value.trim();
+    if (!email || !emailInput.checkValidity()) {
+      setStatus('הזינו כתובת אימייל תקינה');
+      emailInput.focus();
+      return;
+    }
+    passwordSteps.forEach(el => el.classList.remove('hidden'));
+    nextButton?.classList.add('hidden');
+    passwordInput.value = '';
+    passwordInput.focus();
+    setStatus('כעת הזינו את הסיסמה', false);
+  };
+  if (nextButton) nextButton.onclick = revealPassword;
+  emailInput.addEventListener('keydown', event => {
+    if (event.key === 'Enter' && passwordInput.classList.contains('hidden')) {
+      event.preventDefault();
+      revealPassword();
+    }
+  });
 
   document.getElementById('cloudGoogle').onclick = async () => {
     try {
       setStatus('פותח התחברות...', false);
       await signInWithPopup(auth, new GoogleAuthProvider());
+    } catch (error) {
+      setStatus(humanError(error));
+    }
+  };
+
+  document.getElementById('cloudLogin').onclick = async () => {
+    try {
+      setStatus('מתחבר...', false);
+      await signInWithEmailAndPassword(auth, emailInput.value.trim(), passwordInput.value);
+    } catch (error) {
+      setStatus(humanError(error));
+    }
+  };
+
+  document.getElementById('cloudRegister').onclick = async () => {
+    try {
+      setStatus('יוצר חשבון...', false);
+      await createUserWithEmailAndPassword(auth, emailInput.value.trim(), passwordInput.value);
     } catch (error) {
       setStatus(humanError(error));
     }
@@ -188,13 +202,6 @@ async function boot() {
       lastSavedJson = '';
       showSignedOut();
       return;
-    }
-    if (!hasAcceptedGuidelines(user)) {
-      const accepted = await requestGuidelinesConsent(user);
-      if (!accepted) {
-        await signOut(auth);
-        return;
-      }
     }
     showSignedIn(user);
     try {
@@ -253,7 +260,7 @@ if (location.protocol === 'file:') {
   authBox?.classList.remove('hidden');
   if (authBox) authBox.style.pointerEvents = 'auto';
   setStatus('כדי להתחבר ולשמור בענן, פתחו את האפליקציה דרך GitHub Pages ולא דרך file:///');
-  ['cloudGoogle'].forEach(id => {
+  ['cloudGoogle', 'cloudLogin', 'cloudRegister'].forEach(id => {
     const button = document.getElementById(id);
     if (button) button.disabled = true;
   });
