@@ -38,64 +38,20 @@
 @keyframes runBob{from{transform:translateY(5px) rotate(.35deg)}to{transform:translateY(8px) rotate(-.5deg)}}
 @media(max-width:680px){.stage-cards{grid-template-columns:1fr}}
 
-/* v109 responsive polish: scales cleanly on desktop, tablet, phone and landscape */
-html,body{min-width:0;min-height:0}
-.game{height:100dvh;min-height:0;max-width:100vw;margin:0 auto}
-.top{top:max(8px,env(safe-area-inset-top));left:max(10px,env(safe-area-inset-left));right:max(10px,env(safe-area-inset-right))}
-.controls{left:max(12px,env(safe-area-inset-left));right:max(12px,env(safe-area-inset-right));bottom:max(12px,env(safe-area-inset-bottom))}
-.panel{max-width:calc(100vw - 24px)}
-.uri{width:clamp(92px,14vw,158px);height:clamp(158px,33vh,250px)}
-.entity.ground{width:clamp(64px,8vw,112px);height:clamp(64px,9vw,116px)}
-@media (min-width:1200px){
-  .uri{left:12%;width:clamp(135px,11vw,165px);height:clamp(215px,34vh,270px)}
-  .entity.ground{width:clamp(92px,7vw,120px);height:clamp(90px,8vw,124px)}
-  .top{left:24px;right:24px;top:18px}
-  .controls{left:24px;right:24px;bottom:22px}
+/* v99 safe device fit — visual-only overrides */
+@media(max-width:680px){
+  .top{left:8px;right:8px;top:8px;gap:6px}
+  .mission,.hud{padding:7px 9px}
+  .uri{left:6%;width:min(145px,28vw);height:min(220px,33vh)}
+  .controls{left:10px;right:10px;bottom:max(10px,env(safe-area-inset-bottom))}
+  .control{width:64px;height:64px}
+  .panel{width:min(620px,calc(100vw - 18px));max-height:92vh}
 }
-@media (min-width:681px) and (max-width:1024px){
-  .uri{left:9%;width:clamp(105px,18vw,145px);height:clamp(185px,34vh,235px)}
-  .entity.ground{width:clamp(72px,10vw,98px);height:clamp(72px,11vw,104px)}
-}
-@media (max-width:680px){
-  .game{min-height:0}
-  .top{gap:6px}
-  .mission,.hud{border-radius:13px}
-  .uri{left:4%;width:clamp(82px,27vw,122px);height:clamp(145px,29vh,205px)}
-  .uri.sliding{width:clamp(105px,35vw,155px);height:clamp(88px,16vh,125px)}
-  .entity.ground{width:clamp(58px,20vw,82px);height:clamp(58px,21vw,86px)}
-  .message{min-width:min(360px,88vw);padding:10px 14px}
-  .powerbar{right:max(8px,env(safe-area-inset-right));gap:4px}
-  .powerpill{font-size:11px;padding:5px 8px}
-}
-@media (max-width:390px){
-  .hud{gap:6px;font-size:11px}
-  .mission{font-size:12px}
-  .control{width:62px;height:62px}
-  .jumpBtn,#jump{width:78px;height:78px;font-size:33px}
-  .uri{width:25vw;height:27vh}
-}
-@media (max-height:650px) and (orientation:landscape){
-  .game{height:100dvh;min-height:0}
-  .top{top:max(4px,env(safe-area-inset-top));grid-template-columns:minmax(190px,1fr) auto;gap:7px}
-  .mission,.hud{padding:5px 8px;font-size:11px}
-  .mission small{display:none}
-  .progress{height:5px;margin-top:4px}
-  .powerbar{top:52px}
-  .uri{left:7%;width:auto;height:45vh;max-height:190px}
-  .uri.sliding{height:24vh;max-height:100px;width:auto}
-  .entity.ground{width:auto;height:22vh;max-height:82px}
-  .entity.high{font-size:45px}
-  .controls{bottom:max(5px,env(safe-area-inset-bottom))}
-  .control{width:54px;height:54px;font-size:23px}
-  .jumpBtn,#jump{width:66px;height:66px;font-size:30px}
-  .pauseBtn,#pause{width:42px;height:42px;font-size:16px}
-  .panel{padding:11px;max-height:96dvh}
-  .panel h1{font-size:26px}
-  .panel p{font-size:12px;line-height:1.3}
-  .stage-cards{grid-template-columns:repeat(4,1fr);margin:7px 0}
-  .stage-card{padding:5px 4px;font-size:11px}
-  .stage-card span{display:none}
-  .results{margin:8px 0}
+@media(max-height:620px) and (orientation:landscape){
+  .game{min-height:0;height:100vh}
+  .top{top:4px}.mission,.hud{padding:5px 8px;font-size:11px}.mission small{display:none}.progress{height:5px;margin-top:4px}
+  .uri{height:45vh;width:auto}.controls{bottom:5px}.control{width:52px;height:52px;font-size:22px}
+  .panel{max-height:96vh;padding:12px}.panel p{font-size:12px}.stage-cards{margin:8px 0}
 }
 </style>
 </head>
